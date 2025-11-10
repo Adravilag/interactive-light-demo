@@ -92,25 +92,18 @@ Esta aplicación es un ejemplo destacado de **desarrollo colaborativo con IA**:
 - TypeScript para type safety
 - Gestión de estados y eventos complejos
 
-## � Información del Proyecto
+## Información del Proyecto
 
 - **Nombre**: Interactive Light Demo
 - **Versión**: v0.0.1
-- **Repositorio**: `github.com/tu-usuario/interactive-light-demo`
+- **Repositorio**: `github.com/adravilag/interactive-light-demo`
 - **Framework**: Astro v5.15.4
 - **Lenguajes**: TypeScript, CSS3, HTML5
 - **Dependencias**: Mínimas (solo Astro core)
-
-## �👀 ¿Quieres aprender más?
-
-- [Documentación de Astro](https://docs.astro.build)
-- [Claude by Anthropic](https://claude.ai)
-- [Únete al Discord de Astro](https://astro.build/chat)
 
 ## 🙏 Créditos
 
 - **Claude Sonnet 4** - Desarrollo completo de la aplicación
 - **Astro Team** - Framework excepcional para desarrollo web moderno
 - **Fuentes**: Atkinson Hyperlegible, Walter Turncoat
-- **Imágenes**: Propiedad del desarrollador (test.png, modal.png)
-- **Inspiración**: Mecánicas de Undertale y estética de videojuegos retro
+- **Imágenes**: Propiedad del desarrollador (background.png, modal.png)
