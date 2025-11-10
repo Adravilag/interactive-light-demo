@@ -74,7 +74,11 @@
         <p>✨ Gracias por explorar las nuevas características ✨</p>
         <div class="version-info">
           <p class="version">v0.0.1</p>
-                    <p class="repository">github.com/adravilag/interactive-light-demo</p>
+          <p class="repository">
+            <a href="https://github.com/adravilag/interactive-light-demo" target="_blank" rel="noopener noreferrer">
+              github.com/adravilag/interactive-light-demo
+            </a>
+          </p>
         </div>
       `;
       
@@ -90,7 +94,6 @@
         background-repeat: no-repeat;
         color: white;
         padding: 60px 80px;
-        border-radius: 25px;
         text-align: center;
         font-family: 'WalterTurncoat', 'Courier New', monospace;
         box-shadow: 
@@ -98,7 +101,6 @@
           0 4px 8px rgba(0,0,0,0.6),
           inset 0 1px 0 rgba(255,255,255,0.2),
           inset 0 -1px 0 rgba(0,0,0,0.3);
-        border: 1px solid rgba(139,69,19,0.5);
         z-index: 9999;
         opacity: 0;
         transform: translate(-50%, -50%) scale(0.8);
@@ -184,6 +186,31 @@
           border-radius: 5px;
           transition: background-color 0.3s ease;
         `;
+        
+        // Estilos específicos para el enlace de GitHub
+        const githubLink = repositoryElement.querySelector('a');
+        if (githubLink) {
+          (githubLink as HTMLElement).style.cssText = `
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 2px;
+          `;
+          
+          // Efectos hover para el enlace
+          githubLink.addEventListener('mouseenter', () => {
+            (githubLink as HTMLElement).style.color = '#4fc3f7';
+            (githubLink as HTMLElement).style.borderBottomColor = '#4fc3f7';
+            (githubLink as HTMLElement).style.textShadow = '0 0 8px rgba(79, 195, 247, 0.6)';
+          });
+          
+          githubLink.addEventListener('mouseleave', () => {
+            (githubLink as HTMLElement).style.color = 'rgba(255,255,255,0.9)';
+            (githubLink as HTMLElement).style.borderBottomColor = 'rgba(255,255,255,0.3)';
+            (githubLink as HTMLElement).style.textShadow = 'none';
+          });
+        }
         
         // Añadir efecto hover para mejor UX
         repositoryElement.addEventListener('mouseenter', () => {
