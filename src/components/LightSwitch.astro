@@ -1,0 +1,566 @@
+---
+// LightSwitch.astro - Interruptor de luces
+---
+
+<div id="lightSwitch">
+  <div class="switch-toggle"></div>
+</div>
+
+<script>
+  function turnOnLights() {
+    console.log('🔄 Intentando encender las luces...');
+    
+    const isLightOn = document.body.classList.contains('lights-on');
+    if (isLightOn) {
+      console.log('⚠️ Las luces ya están encendidas');
+      return;
+    }
+
+    console.log('💡 Encendiendo las luces...');
+
+    const lightSwitch = document.getElementById('lightSwitch');
+    const flashlight = document.getElementById('flashlight');
+    const darkRoom = document.getElementById('darkRoom');
+    const instructions = document.getElementById('instructions');
+    const roomDarkness = document.getElementById('roomDarkness');
+
+    // Marcar como luces encendidas
+    document.body.classList.add('lights-on');
+    console.log('✅ Clase lights-on añadida al body');
+    
+    // Animación del interruptor
+    if (lightSwitch) {
+      lightSwitch.classList.add('on');
+      console.log('✅ Interruptor marcado como encendido');
+    }
+    
+    // Ocultar linterna e instrucciones gradualmente
+    if (flashlight) {
+      flashlight.style.transition = 'opacity 0.5s ease-out';
+      flashlight.style.opacity = '0';
+      console.log('✅ Linterna ocultada');
+    }
+    
+    if (instructions) {
+      instructions.style.transition = 'opacity 0.5s ease-out';
+      instructions.style.opacity = '0';
+      console.log('✅ Instrucciones ocultadas');
+    }
+
+    // Ocultar el efecto de oscuridad de la linterna
+    if (roomDarkness) {
+      roomDarkness.style.transition = 'opacity 0.8s ease-out';
+      roomDarkness.style.opacity = '0';
+      console.log('✅ Efecto de oscuridad de linterna ocultado');
+    }
+
+    // Revelar el fondo de la habitación
+    const roomBackground = document.getElementById('roomBackground');
+    if (roomBackground) {
+      roomBackground.style.transition = 'opacity 1s ease-out';
+      roomBackground.style.opacity = '1';
+      roomBackground.classList.add('revealed');
+      console.log('✅ Fondo de habitación revelado');
+    }
+
+    // Mostrar mensaje de demo terminada con delay
+    setTimeout(() => {
+      // Crear elemento para el mensaje de demo terminada
+      const demoEndMessage = document.createElement('div');
+      demoEndMessage.id = 'demo-end-message';
+      demoEndMessage.innerHTML = `
+        <h1>¡DEMO TERMINADA!</h1>
+        <p>Demostración de Astro y CSS moderno</p>
+        <p>✨ Gracias por explorar las nuevas características ✨</p>
+        <div class="version-info">
+          <p class="version">v0.0.1</p>
+                    <p class="repository">github.com/tu-usuario/interactive-light-demo</p>
+        </div>
+      `;
+      
+      // Estilos en línea para el mensaje
+      demoEndMessage.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-image: url('/modal.png');
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        color: white;
+        padding: 60px 80px;
+        border-radius: 25px;
+        text-align: center;
+        font-family: 'WalterTurncoat', 'Courier New', monospace;
+        box-shadow: 
+          0 8px 16px rgba(0,0,0,0.8),
+          0 4px 8px rgba(0,0,0,0.6),
+          inset 0 1px 0 rgba(255,255,255,0.2),
+          inset 0 -1px 0 rgba(0,0,0,0.3);
+        border: 1px solid rgba(139,69,19,0.5);
+        z-index: 9999;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+        transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.7));
+        cursor: default;
+        user-select: text;
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        pointer-events: auto;
+      `;
+      
+      // Estilos para el título
+      const h1 = demoEndMessage.querySelector('h1');
+      if (h1) {
+        h1.style.cssText = `
+          font-size: 3.5em;
+          margin: 0 0 30px 0;
+          text-shadow: 0 0 20px rgba(255,255,255,0.5);
+          animation: glow 2s ease-in-out infinite alternate;
+        `;
+      }
+      
+      // Estilos para los párrafos principales
+      const mainParagraphs = demoEndMessage.querySelectorAll('p:not(.version):not(.repository)');
+      mainParagraphs.forEach((p, index) => {
+        (p as HTMLElement).style.cssText = `
+          font-size: 1.5em;
+          margin: 15px 0;
+          opacity: 0;
+          transform: translateY(20px);
+          animation: fadeInUp 0.8s ease-out forwards;
+          animation-delay: ${0.5 + index * 0.3}s;
+        `;
+      });
+      
+      // Estilos para la información de versión
+      const versionInfo = demoEndMessage.querySelector('.version-info');
+      if (versionInfo) {
+        (versionInfo as HTMLElement).style.cssText = `
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid rgba(255,255,255,0.3);
+          opacity: 0;
+          transform: translateY(20px);
+          animation: fadeInUp 0.8s ease-out forwards;
+          animation-delay: 1.4s;
+        `;
+      }
+      
+      // Estilos para la versión
+      const versionElement = demoEndMessage.querySelector('.version');
+      if (versionElement) {
+        (versionElement as HTMLElement).style.cssText = `
+          font-size: 1.2em;
+          margin: 8px 0;
+          color: rgba(255,255,255,0.8);
+          font-weight: bold;
+          cursor: text;
+          user-select: text;
+          -webkit-user-select: text;
+          -moz-user-select: text;
+          -ms-user-select: text;
+        `;
+      }
+      
+      // Estilos para el repositorio
+      const repositoryElement = demoEndMessage.querySelector('.repository');
+      if (repositoryElement) {
+        (repositoryElement as HTMLElement).style.cssText = `
+          font-size: 1em;
+          margin: 8px 0;
+          color: rgba(255,255,255,0.7);
+          font-style: italic;
+          cursor: text;
+          user-select: text;
+          -webkit-user-select: text;
+          -moz-user-select: text;
+          -ms-user-select: text;
+          background: rgba(0,0,0,0.2);
+          padding: 5px 10px;
+          border-radius: 5px;
+          transition: background-color 0.3s ease;
+        `;
+        
+        // Añadir efecto hover para mejor UX
+        repositoryElement.addEventListener('mouseenter', () => {
+          (repositoryElement as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.1)';
+        });
+        
+        repositoryElement.addEventListener('mouseleave', () => {
+          (repositoryElement as HTMLElement).style.backgroundColor = 'rgba(0,0,0,0.2)';
+        });
+      }
+      
+      // Añadir animaciones CSS
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes glow {
+          0% { text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+          100% { text-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 40px rgba(102, 126, 234, 0.6); }
+        }
+        @keyframes fadeInUp {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      document.body.appendChild(demoEndMessage);
+      
+      // Animar la aparición del mensaje
+      setTimeout(() => {
+        demoEndMessage.style.opacity = '1';
+        demoEndMessage.style.transform = 'translate(-50%, -50%) scale(1)';
+        
+        // Asegurar que el modal tenga el foco y esté en primer plano
+        demoEndMessage.focus();
+        
+        // Crear un backdrop invisible para bloquear interacciones con el fondo
+        const backdrop = document.createElement('div');
+        backdrop.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.3);
+          z-index: 9998;
+          backdrop-filter: blur(2px);
+        `;
+        document.body.appendChild(backdrop);
+        
+        console.log('✅ Modal con backdrop creado, texto seleccionable');
+      }, 100);
+      
+      console.log('✅ Mensaje de demo terminada mostrado');
+      
+      // Solo ocultar el overlay negro manteniendo la imagen de fondo visible
+      setTimeout(() => {
+        const roomBackground = document.getElementById('roomBackground');
+        if (roomBackground) {
+          // Asegurar que la imagen de fondo permanezca visible permanentemente
+          roomBackground.style.opacity = '1';
+          roomBackground.style.zIndex = '1';
+          roomBackground.style.display = 'block';
+        }
+        
+        // Solo ocultar el overlay negro, NO toda la habitación
+        const roomDarkness = document.getElementById('roomDarkness');
+        if (roomDarkness) {
+          roomDarkness.style.display = 'none';
+        }
+        
+        // Ocultar solo las instrucciones y elementos de UI, mantener el fondo
+        const instructions = document.getElementById('instructions');
+        if (instructions) {
+          instructions.style.display = 'none';
+        }
+        
+        const flashlight = document.getElementById('flashlight');
+        if (flashlight) {
+          flashlight.style.display = 'none';
+        }
+        
+        const lightSwitch = document.getElementById('lightSwitch');
+        if (lightSwitch) {
+          lightSwitch.style.display = 'none';
+        }
+        
+        console.log('✅ UI ocultado, imagen de fondo permanece visible');
+      }, 1500);
+    }, 1000);
+  }
+
+  // Detectar cuando el interruptor es visible para mostrar opacidad
+  function updateSwitchVisibility() {
+    const hasFlashlight = document.body.classList.contains('has-flashlight');
+    const isLightOn = document.body.classList.contains('lights-on');
+    
+    if (!hasFlashlight || isLightOn) return;
+
+    const lightSwitch = document.getElementById('lightSwitch');
+    if (!lightSwitch) return;
+
+    const switchRect = lightSwitch.getBoundingClientRect();
+    const switchCenterX = switchRect.left + switchRect.width / 2;
+    const switchCenterY = switchRect.top + switchRect.height / 2;
+    
+    // Obtener posición actual del mouse desde el cuerpo
+    const mouseX = parseFloat(document.body.dataset.mouseX || '0');
+    const mouseY = parseFloat(document.body.dataset.mouseY || '0');
+    
+    const distance = Math.sqrt(
+      Math.pow(mouseX - switchCenterX, 2) + 
+      Math.pow(mouseY - switchCenterY, 2)
+    );
+    
+    const maxDistance = 250;
+    
+    if (distance < maxDistance) {
+      const normalizedDistance = distance / maxDistance;
+      const opacity = Math.pow(1 - normalizedDistance, 3) * 0.95;
+      lightSwitch.style.opacity = Math.max(0, opacity).toString();
+    } else {
+      lightSwitch.style.opacity = '0';
+    }
+  }
+
+  // Función para generar posición aleatoria del interruptor
+  function randomizeSwitchPosition() {
+    const lightSwitch = document.getElementById('lightSwitch');
+    if (!lightSwitch) return;
+    
+    // Obtener dimensiones de la ventana
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // Dimensiones del interruptor (ajustadas para móvil)
+    const isMobile = windowWidth <= 768;
+    const switchWidth = isMobile ? 80 : 70;
+    const switchHeight = isMobile ? 140 : 120;
+    
+    // Definir márgenes adaptativos
+    const margin = isMobile ? 50 : 80;
+    
+    // Calcular posiciones aleatorias dentro de los límites seguros
+    const minX = margin;
+    const maxX = windowWidth - switchWidth - margin;
+    const minY = margin;
+    const maxY = windowHeight - switchHeight - margin;
+    
+    // Asegurar que los límites sean válidos
+    if (maxX <= minX || maxY <= minY) {
+      console.warn('⚠️ Ventana demasiado pequeña para posicionar el interruptor');
+      // Posición de emergencia en el centro
+      lightSwitch.style.left = (windowWidth - switchWidth) / 2 + 'px';
+      lightSwitch.style.top = (windowHeight - switchHeight) / 2 + 'px';
+      return;
+    }
+    
+    // Generar posiciones aleatorias con distribución más uniforme
+    const randomX = Math.random() * (maxX - minX) + minX;
+    const randomY = Math.random() * (maxY - minY) + minY;
+    
+    // Aplicar las posiciones con una pequeña animación
+    lightSwitch.style.transition = 'left 0.5s ease-out, top 0.5s ease-out';
+    lightSwitch.style.left = randomX + 'px';
+    lightSwitch.style.top = randomY + 'px';
+    
+    // Restaurar la transición original después de la animación
+    setTimeout(() => {
+      lightSwitch.style.transition = 'all 0.3s ease-out';
+    }, 500);
+    
+    console.log(`🎲 Interruptor posicionado en: (${Math.round(randomX)}, ${Math.round(randomY)})`);
+  }
+
+  // Función de inicialización mejorada
+  function initializeLightSwitch() {
+    console.log('🔌 Inicializando interruptor de luz...');
+    
+    const lightSwitch = document.getElementById('lightSwitch');
+    if (!lightSwitch) {
+      console.error('❌ No se encontró el elemento lightSwitch');
+      return;
+    }
+
+    console.log('✅ Elemento lightSwitch encontrado');
+    
+    // Establecer posición aleatoria
+    randomizeSwitchPosition();
+
+    // Agregar event listener con debugging
+    lightSwitch.addEventListener('click', (e) => {
+      console.log('🖱️ Click detectado en el interruptor');
+      e.preventDefault();
+      e.stopPropagation();
+      turnOnLights();
+    });
+
+    // También agregar event listener para touch en dispositivos móviles
+    lightSwitch.addEventListener('touchstart', (e) => {
+      console.log('👆 Touch detectado en el interruptor');
+      e.preventDefault();
+      e.stopPropagation();
+      turnOnLights();
+    });
+
+    console.log('✅ Event listeners del interruptor configurados');
+
+    // Rastrear posición del mouse globalmente
+    document.addEventListener('mousemove', (e) => {
+      document.body.dataset.mouseX = e.clientX.toString();
+      document.body.dataset.mouseY = e.clientY.toString();
+      updateSwitchVisibility();
+    });
+
+    // Reposicionar el interruptor cuando se redimensione la ventana
+    window.addEventListener('resize', () => {
+      randomizeSwitchPosition();
+    });
+
+    console.log('✅ Tracking de mouse y resize configurados');
+  }
+
+  // Esperar a que el DOM esté completamente cargado
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeLightSwitch);
+  } else {
+    // DOM ya está cargado
+    initializeLightSwitch();
+  }
+
+  // También esperar un poco más por si acaso
+  setTimeout(() => {
+    const lightSwitch = document.getElementById('lightSwitch');
+    if (lightSwitch && !lightSwitch.onclick) {
+      console.log('🔄 Reintentando inicialización del interruptor...');
+      initializeLightSwitch();
+    }
+  }, 1000);
+</script>
+
+<style>
+  #lightSwitch {
+    position: fixed;
+    /* Las posiciones top/left serán establecidas por JavaScript */
+    width: 70px;
+    height: 120px;
+    background: linear-gradient(to bottom, #555 0%, #333 50%, #222 100%);
+    border: 3px solid #666;
+    border-radius: 12px;
+    box-shadow: 
+      inset 0 2px 5px rgba(0,0,0,0.6),
+      0 0 20px rgba(255,255,255,0.1),
+      0 5px 15px rgba(0,0,0,0.5);
+    cursor: pointer;
+    z-index: 250;
+    padding: 12px;
+    transition: all 0.3s ease-out;
+    opacity: 0;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #lightSwitch:hover {
+    transform: scale(1.1);
+    box-shadow: 
+      inset 0 2px 5px rgba(0,0,0,0.6),
+      0 0 30px rgba(255,255,255,0.2),
+      0 8px 25px rgba(0,0,0,0.6);
+  }
+
+  #lightSwitch:active {
+    transform: scale(1.05);
+  }
+
+  .switch-toggle {
+    width: 46px;
+    height: 46px;
+    background: linear-gradient(to bottom, #777 0%, #555 50%, #444 100%);
+    border: 2px solid #888;
+    border-radius: 8px;
+    position: relative;
+    top: 0;
+    margin: 0 auto;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 
+      0 3px 8px rgba(0,0,0,0.4),
+      inset 0 1px 2px rgba(255,255,255,0.2);
+  }
+
+  .switch-toggle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 3px;
+    background: #999;
+    transform: translate(-50%, -50%);
+    border-radius: 2px;
+    box-shadow: 
+      0 -6px 0 #999,
+      0 6px 0 #999;
+  }
+
+  #lightSwitch.on .switch-toggle {
+    top: 46px;
+    background: linear-gradient(to bottom, #66bb6a 0%, #4caf50 50%, #388e3c 100%);
+    border-color: #4caf50;
+    box-shadow: 
+      0 3px 8px rgba(76, 175, 80, 0.4),
+      inset 0 1px 2px rgba(255,255,255,0.3),
+      0 0 15px rgba(76, 175, 80, 0.6);
+  }
+
+  #lightSwitch.on .switch-toggle::before {
+    background: #e8f5e8;
+    box-shadow: 
+      0 -6px 0 #e8f5e8,
+      0 6px 0 #e8f5e8;
+  }
+
+  /* Efecto de brillo cuando está visible */
+  #lightSwitch[style*="opacity: 0."] {
+    animation: switchGlow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes switchGlow {
+    0% {
+      box-shadow: 
+        inset 0 2px 5px rgba(0,0,0,0.6),
+        0 0 20px rgba(255,255,255,0.1),
+        0 5px 15px rgba(0,0,0,0.5);
+    }
+    100% {
+      box-shadow: 
+        inset 0 2px 5px rgba(0,0,0,0.6),
+        0 0 25px rgba(255,255,255,0.2),
+        0 5px 15px rgba(0,0,0,0.5),
+        0 0 40px rgba(255,255,255,0.1);
+    }
+  }
+
+  /* Mejorar la visibilidad en dispositivos móviles */
+  @media (max-width: 768px) {
+    #lightSwitch {
+      width: 80px;
+      height: 140px;
+      padding: 15px;
+      /* Las posiciones seguirán siendo establecidas por JavaScript */
+    }
+    
+    .switch-toggle {
+      width: 50px;
+      height: 50px;
+    }
+    
+    #lightSwitch.on .switch-toggle {
+      top: 50px;
+    }
+  }
+
+  /* Indicador visual adicional */
+  #lightSwitch::after {
+    content: '💡';
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  #lightSwitch:hover::after {
+    opacity: 0.8;
+  }
+</style>

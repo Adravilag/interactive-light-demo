@@ -1,0 +1,119 @@
+---
+// DarkRoom.astro - Componente principal de la habitación oscura
+import TypewriterText from './TypewriterText.astro';
+import FlashlightEffect from './FlashlightEffect.astro';
+import PickupItem from './PickupItem.astro';
+import LightSwitch from './LightSwitch.astro';
+---
+
+<div id="darkRoom">
+  <div id="roomBackground"></div>
+  <div id="roomDarkness"></div>
+  
+  <div id="instructions">
+    <TypewriterText 
+      id="line1" 
+      text="Estás en una habitación oscura..." 
+      delay={800} 
+      speed="slow"
+      style="undertale"
+      sound={true}
+      fadeOutDelay={1000}
+    />
+    <TypewriterText 
+      id="line2" 
+      text="Ves algo brillando en el suelo." 
+      delay={7000} 
+      speed="slow"
+      style="undertale"
+      sound={true}
+      fadeOutDelay={1000}
+    />
+    <TypewriterText 
+      id="line3" 
+      text="Busca el interruptor para encender las luces." 
+      delay={14000} 
+      speed="slow"
+      style="undertale"
+      sound={true}
+      fadeOutDelay={0}
+    />
+  </div>
+  
+  <PickupItem delay={10000} />
+  <FlashlightEffect />
+  <LightSwitch />
+</div>
+
+<style>
+  #darkRoom {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: block;
+    z-index: 100;
+  }
+
+  #roomBackground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    z-index: 105;
+    pointer-events: none;
+  }
+
+  #roomBackground.revealed {
+    opacity: 1;
+  }
+
+  #roomDarkness {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 120;
+    pointer-events: none;
+    mask: radial-gradient(circle 250px at var(--flashlight-x, 50%) var(--flashlight-y, 50%), transparent 40%, black 70%);
+    -webkit-mask: radial-gradient(circle 250px at var(--flashlight-x, 50%) var(--flashlight-y, 50%), transparent 40%, black 70%);
+    transition: mask 0.1s ease-out, -webkit-mask 0.1s ease-out;
+    opacity: 0;
+  }
+
+  #roomDarkness.active {
+    opacity: 1;
+  }
+
+  #instructions {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255,255,255,0.9);
+    text-align: center;
+    font-size: 1.8em;
+    z-index: 250;
+    pointer-events: none;
+    font-family: 'WalterTurncoat', 'Courier New', monospace;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.6);
+    line-height: 1.6;
+  }
+
+  #instructions p {
+    margin: 25px 0;
+    min-height: 35px;
+    letter-spacing: 1px;
+  }
+</style>
+

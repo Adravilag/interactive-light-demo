@@ -1,0 +1,496 @@
+---
+// TypewriterText.astro - Componente de texto animado optimizado
+export interface Props {
+  id: string;
+  text: string;
+  delay?: number;
+  speed?: 'slow' | 'normal' | 'fast';
+  style?: 'undertale' | 'retro' | 'glitch' | 'elegant';
+  sound?: boolean;
+  className?: string;
+  onComplete?: () => void;
+  fadeOutDelay?: number;
+}
+
+const { 
+  id, 
+  text, 
+  delay = 0, 
+  speed = 'normal',
+  style = 'undertale',
+  sound = true,
+  className = '',
+  fadeOutDelay = 0
+} = Astro.props;
+---
+
+<div class={`typewriter-container ${style}-style ${className}`} data-typewriter-id={id}>
+  <p id={id} 
+     class="typewriter-text"
+     data-text={text} 
+     data-delay={delay} 
+     data-speed={speed} 
+     data-style={style} 
+     data-sound={sound}
+     data-fadeout-delay={fadeOutDelay}
+     role="status"
+     aria-live="polite">
+    <span class="cursor" id={`cursor-${id}`} aria-hidden="true">_</span>
+  </p>
+</div>
+
+<script>
+  // Sistema de audio optimizado con pool de oscilladores
+  class TypewriterAudioSystem {
+    private audioContext: AudioContext | null = null;
+    public isInitialized: boolean = false;
+    private maxSimultaneousSounds = 2;
+    private currentSounds = 0;
+
+    async init() {
+      if (this.isInitialized) return;
+
+      try {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        if (this.audioContext.state === 'suspended') {
+          document.addEventListener('click', () => this.audioContext?.resume(), { once: true });
+          document.addEventListener('keydown', () => this.audioContext?.resume(), { once: true });
+        }
+
+        this.isInitialized = true;
+      } catch (error) {
+        console.warn('Audio not available:', error);
+      }
+    }
+
+    play(pitch: number = 1, duration: number = 0.1) {
+      if (!this.audioContext || !this.isInitialized || this.currentSounds >= this.maxSimultaneousSounds) return;
+
+      try {
+        const now = this.audioContext.currentTime;
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(Math.max(200, 400 * pitch), now);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.audioContext.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+
+        this.currentSounds++;
+        osc.onended = () => this.currentSounds--;
+      } catch (error) {
+        console.warn('Error playing sound:', error);
+      }
+    }
+  }
+
+  // Sistema de caché para animaciones
+  const animationCache = new Map<string, string>();
+  let audioSystem: TypewriterAudioSystem;
+
+  // Constantes
+  const SPEED_MAP = { slow: 100, normal: 60, fast: 30 } as const;
+  const PUNCTUATION = '.,!?;:';
+  const SPECIAL_CHARS = {
+    ' ': '&nbsp;',
+    '\n': '<br>'
+  };
+
+  // Efecto de typewriter mejorado con requestAnimationFrame
+  function typewriterEffect(
+    element: HTMLElement,
+    text: string,
+    speed: string,
+    style: string,
+    enableSound: boolean
+  ) {
+    // Limpiar el contenido pero mantener el cursor
+    const cursor = element.querySelector('.cursor') as HTMLElement;
+    element.innerHTML = '';
+    
+    // Reinsertrar el cursor al final
+    if (cursor) {
+      element.appendChild(cursor);
+      cursor.style.opacity = '1';
+      cursor.classList.add('blinking');
+    }
+
+    let charIndex = 0;
+    const typeSpeed = SPEED_MAP[speed as keyof typeof SPEED_MAP] || 60;
+    let lastTime = Date.now();
+    let timeAccumulator = 0;
+
+    const animate = () => {
+      const now = Date.now();
+      timeAccumulator += now - lastTime;
+      lastTime = now;
+
+      while (timeAccumulator >= typeSpeed && charIndex < text.length) {
+        timeAccumulator -= typeSpeed;
+
+        const char = text[charIndex];
+        const span = document.createElement('span');
+        span.className = `char char-${style}`;
+
+        if (char === ' ') {
+          span.innerHTML = '&nbsp;';
+        } else if (char === '\n') {
+          span.innerHTML = '<br>';
+        } else {
+          span.textContent = char;
+        }
+
+        // Aplicar efectos
+        applyCharEffects(span, style, charIndex, char);
+
+        // Reproducir sonido
+        if (enableSound && audioSystem?.isInitialized && char !== ' ' && char !== '\n') {
+          const pitch = 0.8 + Math.random() * 0.4;
+          const adjustedPitch = PUNCTUATION.includes(char) ? pitch * 0.7 : pitch;
+          audioSystem.play(adjustedPitch, 0.08);
+        }
+
+        // Insertar el span antes del cursor
+        if (cursor && cursor.parentNode === element) {
+          element.insertBefore(span, cursor);
+        } else {
+          element.appendChild(span);
+        }
+        charIndex++;
+      }
+
+      if (charIndex < text.length) {
+        requestAnimationFrame(animate);
+      } else {
+        finishAnimation(element, cursor);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }
+
+  function applyCharEffects(span: HTMLElement, style: string, index: number, char: string) {
+    if (style === 'undertale' && Math.random() < 0.08) {
+      span.classList.add('undertale-shake');
+    } else if (style === 'glitch' && Math.random() < 0.12) {
+      span.classList.add('glitch-effect');
+      span.dataset.char = char;
+    } else if (style === 'elegant') {
+      span.style.setProperty('--animation-delay', `${index * 0.02}s`);
+    } else if (style === 'retro') {
+      span.style.setProperty('--char-index', index.toString());
+    }
+  }
+
+  function finishAnimation(element: HTMLElement, cursor: HTMLElement | null) {
+    if (cursor) {
+      cursor.classList.remove('blinking');
+      cursor.style.opacity = '0';
+    }
+
+    element.parentElement?.classList.add('completed');
+    element.dispatchEvent(new CustomEvent('typewriter-complete', { detail: { id: element.id } }));
+
+    // Aplicar fade out y destruir si está configurado
+    const fadeOutDelay = parseInt(element.getAttribute('data-fadeout-delay') || '0');
+    
+    if (fadeOutDelay > 0) {
+      setTimeout(() => {
+        const container = element.parentElement;
+        if (container) {
+          container.style.transition = 'opacity 1s ease-out';
+          container.style.opacity = '0';
+          
+          // Destruir completamente después del fade out
+          setTimeout(() => {
+            // Dispatch evento antes de destruir
+            container.dispatchEvent(new CustomEvent('typewriter-destroyed', { 
+              detail: { id: element.id },
+              bubbles: true 
+            }));
+            
+            // Eliminar del DOM completamente
+            container.remove();
+          }, 1000);
+        }
+      }, fadeOutDelay);
+    }
+  }
+
+  // Inicialización
+  document.addEventListener('DOMContentLoaded', async () => {
+    audioSystem = new TypewriterAudioSystem();
+    await audioSystem.init();
+
+    document.querySelectorAll('.typewriter-text[data-text]').forEach((element) => {
+      const text = element.getAttribute('data-text') || '';
+      const delay = parseInt(element.getAttribute('data-delay') || '0');
+      const speed = element.getAttribute('data-speed') || 'normal';
+      const style = element.getAttribute('data-style') || 'undertale';
+      const enableSound = element.getAttribute('data-sound') === 'true';
+
+      // Listener para eventos manuales de typewriter
+      element.addEventListener('manual-typewriter-start', (e) => {
+        const customEvent = e as CustomEvent;
+        const { text: customText, speed: customSpeed, style: customStyle, enableSound: customSound } = customEvent.detail;
+        
+        // Reiniciar el elemento antes de la nueva animación
+        element.innerHTML = '';
+        const cursor = document.getElementById(`cursor-${element.id}`);
+        if (cursor) {
+          element.appendChild(cursor);
+        }
+        
+        typewriterEffect(element as HTMLElement, customText || text, customSpeed || speed, customStyle || style, customSound !== undefined ? customSound : enableSound);
+      });
+
+      // Solo iniciar automáticamente si no tiene clase 'flashlight-message'
+      if (!element.closest('.flashlight-message')) {
+        setTimeout(() => {
+          typewriterEffect(element as HTMLElement, text, speed, style, enableSound);
+        }, delay);
+      }
+    });
+  });
+</script>
+
+<style>
+  .typewriter-container {
+    position: relative;
+    display: inline-block;
+    line-height: 1.6;
+    opacity: 1;
+  }
+
+  .typewriter-text {
+    margin: 0;
+    padding: 0;
+    word-break: break-word;
+  }
+
+  .cursor {
+    display: inline;
+    opacity: 0;
+    margin-left: 2px;
+    font-weight: bold;
+    transition: opacity 0.3s ease;
+    vertical-align: baseline;
+  }
+
+  .cursor.blinking {
+    animation: cursorBlink 1s infinite;
+  }
+
+  @keyframes cursorBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* Caracteres base */
+  .char {
+    display: inline-block;
+    animation-fill-mode: forwards;
+  }
+
+  /* Undertale */
+  .char-undertale {
+    animation: undertaleAppear 0.15s ease-out;
+    color: rgba(255, 255, 255, 0.95);
+    font-family: 'WalterTurncoat', 'Courier New', monospace;
+    font-weight: normal;
+  }
+
+  @keyframes undertaleAppear {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(1.3);
+      filter: brightness(1.8);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: brightness(1);
+    }
+  }
+
+  .char-undertale.undertale-shake {
+    animation: undertaleAppear 0.15s ease-out, undertaleShake 0.25s 0.15s;
+  }
+
+  @keyframes undertaleShake {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-0.5px); }
+  }
+
+  /* Retro */
+  .char-retro {
+    animation: retroAppear 0.12s ease-out;
+    color: #0f0;
+    text-shadow: 0 0 4px #0f0, 0 0 8px #0f0;
+    font-family: 'Atkinson', 'Courier New', monospace;
+    font-weight: normal;
+    letter-spacing: 1px;
+  }
+
+  @keyframes retroAppear {
+    from {
+      opacity: 0;
+      transform: scaleY(0) scaleX(1.4);
+      filter: brightness(2.5) blur(2px);
+    }
+    to {
+      opacity: 1;
+      transform: scaleY(1) scaleX(1);
+      filter: brightness(1) blur(0);
+    }
+  }
+
+  /* Glitch */
+  .char-glitch {
+    animation: glitchAppear 0.08s ease-out;
+    color: #f0f;
+    position: relative;
+  }
+
+  .char-glitch.glitch-effect {
+    animation: glitchAppear 0.08s ease-out, glitchDistort 0.2s 0.08s;
+  }
+
+  .char-glitch::before {
+    content: attr(data-char);
+    position: absolute;
+    top: 0;
+    left: 1px;
+    color: #0ff;
+    opacity: 0.7;
+    animation: glitchShadow 0.2s 0.08s;
+    z-index: -1;
+  }
+
+  .char-glitch::after {
+    content: attr(data-char);
+    position: absolute;
+    top: 0;
+    left: -1px;
+    color: #f00;
+    opacity: 0.7;
+    animation: glitchShadow 0.2s 0.08s;
+    z-index: -2;
+  }
+
+  @keyframes glitchAppear {
+    from {
+      opacity: 0;
+      transform: translate(2px, -1px) scale(1.15);
+      filter: hue-rotate(-30deg);
+    }
+    to {
+      opacity: 1;
+      transform: translate(0, 0) scale(1);
+      filter: hue-rotate(0deg);
+    }
+  }
+
+  @keyframes glitchDistort {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+  }
+
+  @keyframes glitchShadow {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(1.5px, -1.5px); }
+  }
+
+  .glitch-style {
+    position: relative;
+  }
+
+  .glitch-style::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 0, 255, 0.08) 50%, transparent 100%);
+    animation: glitchScan 4s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes glitchScan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  /* Elegant */
+  .char-elegant {
+    animation: elegantAppear 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: #f0f0f0;
+    font-family: 'Atkinson', 'Georgia', serif;
+  }
+
+  @keyframes elegantAppear {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.9);
+      filter: blur(1px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  .elegant-style::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #f0f0f0, transparent);
+    animation: elegantUnderline 1.5s ease-out forwards;
+  }
+
+  @keyframes elegantUnderline {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .char {
+      animation-duration: 0.08s !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .char,
+    .cursor {
+      animation: none !important;
+    }
+
+    .char {
+      opacity: 1;
+    }
+
+    .cursor.blinking {
+      opacity: 1;
+    }
+  }
+
+  /* Estados */
+  .typewriter-container.completed .char {
+    user-select: text;
+  }
+
+  .typewriter-container.highlight .char {
+    text-shadow: 0 0 12px currentColor;
+  }
+</style>

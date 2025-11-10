@@ -1,44 +1,53 @@
-# Astro Starter Kit: Blog
+# Interactive Light Demo
 
-```sh
-npm create astro@latest -- --template blog
-```
+Una demostración interactiva de habitación oscura que muestra las capacidades de Astro junto con técnicas avanzadas de CSS y JavaScript para crear experiencias web inmersivas.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+> 🤖 **Desarrollado completamente con Claude Sonnet 4** - Esta aplicación fue creada íntegramente mediante conversación con IA, demostrando las capacidades de desarrollo colaborativo entre humanos e inteligencia artificial.
 
-Features:
+## ✨ Características
 
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and OpenGraph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
+- 🌙 **Experiencia de habitación oscura** con efectos de linterna
+- ⌨️ **Animaciones de texto typewriter** estilo Undertale
+- 🔦 **Sistema de pickup interactivo** con animaciones y efectos de partículas
+- 💡 **Interruptor de luz dinámico** con posicionamiento aleatorio
+- 🎨 **Efectos CSS avanzados** (masks, gradients, animations)
+- 🔊 **Sistema de audio procedural** para efectos de sonido
+- 📱 **Diseño completamente responsivo**
+- 🎮 **Interacciones tipo videojuego** (mouse + teclado)
+- 🌈 **Múltiples estilos de animación** (undertale, retro, glitch, elegant)
+- 🖼️ **Integración perfecta de assets** (fuentes, imágenes, sonidos)
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
+## 🚀 Estructura del Proyecto
 
 ```text
-├── public/
+interactive-light-demo/
+├── public/                   # Assets estáticos
+│   ├── background.png       # Imagen de fondo de la habitación
+│   ├── modal.png           # Fondo del modal final
+│   ├── favicon.svg         # Icono del sitio
+│   └── fonts/              # Fuentes personalizadas
+│       ├── atkinson-hyperlegible/
+│       └── walter-turncoat/
 ├── src/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
+│   ├── components/         # Componentes interactivos
+│   │   ├── DarkRoom.astro  # Componente principal
+│   │   ├── TypewriterText.astro
+│   │   ├── FlashlightEffect.astro
+│   │   ├── PickupItem.astro
+│   │   └── LightSwitch.astro
+│   ├── layouts/           
+│   │   └── Layout.astro    # Layout principal con fuentes
+│   ├── pages/             
+│   │   └── index.astro     # Página de inicio
+│   └── styles/
+│       └── global.css      # Estilos globales
+├── astro.config.mjs        # Configuración Astro limpia
+├── package.json            # Dependencias mínimas
+├── tsconfig.json          # Configuración TypeScript
+└── README.md
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
-
-Any static assets, like images, can be placed in the `public/` directory.
+El proyecto utiliza una estructura minimalista y limpia, enfocada exclusivamente en la demostración interactiva. Todos los assets estáticos como imágenes y fuentes se encuentran en el directorio `public/`.
 
 ## 🧞 Commands
 
@@ -53,10 +62,55 @@ All commands are run from the root of the project, from a terminal:
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## 👀 Want to learn more?
+## 🎮 Cómo usar la demo
 
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+1. Inicia el servidor de desarrollo: `npm run dev`
+2. Abre `http://localhost:4321` en tu navegador
+3. Sigue la secuencia interactiva:
+   - Lee los textos que aparecen automáticamente
+   - Espera a que aparezca la linterna brillando (�)
+   - Recoge la linterna haciendo click o presionando 'Z'
+   - Busca el interruptor de luz (posición aleatoria)
+   - Activa el interruptor para completar la demo
 
-## Credit
+## 🤖 Desarrollado con Claude Sonnet 4
 
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+Esta aplicación es un ejemplo destacado de **desarrollo colaborativo con IA**:
+
+- **100% código generado** mediante conversación natural
+- **Iteración rápida** de funcionalidades complejas
+- **Debugging colaborativo** entre humano e IA
+- **Implementación de técnicas avanzadas** sin conocimiento previo detallado
+- **Optimización continua** basada en feedback inmediato
+
+### Tecnologías implementadas con IA:
+- Astro framework con componentes interactivos
+- CSS Grid y Flexbox para layouts responsivos
+- CSS Masks para efectos de linterna
+- Web Audio API para sonidos procedurales
+- Canvas y animaciones CSS complejas
+- TypeScript para type safety
+- Gestión de estados y eventos complejos
+
+## � Información del Proyecto
+
+- **Nombre**: Interactive Light Demo
+- **Versión**: v0.0.1
+- **Repositorio**: `github.com/tu-usuario/interactive-light-demo`
+- **Framework**: Astro v5.15.4
+- **Lenguajes**: TypeScript, CSS3, HTML5
+- **Dependencias**: Mínimas (solo Astro core)
+
+## �👀 ¿Quieres aprender más?
+
+- [Documentación de Astro](https://docs.astro.build)
+- [Claude by Anthropic](https://claude.ai)
+- [Únete al Discord de Astro](https://astro.build/chat)
+
+## 🙏 Créditos
+
+- **Claude Sonnet 4** - Desarrollo completo de la aplicación
+- **Astro Team** - Framework excepcional para desarrollo web moderno
+- **Fuentes**: Atkinson Hyperlegible, Walter Turncoat
+- **Imágenes**: Propiedad del desarrollador (test.png, modal.png)
+- **Inspiración**: Mecánicas de Undertale y estética de videojuegos retro

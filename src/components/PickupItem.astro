@@ -1,0 +1,527 @@
+---
+// PickupItem.astro - Linterna recogible en el suelo
+export interface Props {
+  delay?: number;
+}
+
+const { delay = 0 } = Astro.props;
+---
+
+<span id="flashlightItem" data-delay={delay} class={delay > 0 ? 'delayed' : ''}>🔦</span>
+<div id="pickupText" class={delay > 0 ? 'delayed' : ''}>[ Presiona Z o Click para recoger ]</div>
+
+<script>
+  // Variables globales para el estado
+  let mouseX = 0;
+  let mouseY = 0;
+  let hasFlashlight = false;
+
+  // Función para crear efecto de partículas brillantes
+  function createSparkleEffect(element: HTMLElement) {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    for (let i = 0; i < 12; i++) {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'sparkle';
+      sparkle.style.position = 'fixed';
+      sparkle.style.left = centerX + 'px';
+      sparkle.style.top = centerY + 'px';
+      sparkle.style.zIndex = '180';
+      sparkle.style.pointerEvents = 'none';
+      
+      // Dirección aleatoria
+      const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+      const distance = 60 + Math.random() * 40;
+      const finalX = centerX + Math.cos(angle) * distance;
+      const finalY = centerY + Math.sin(angle) * distance;
+      
+      sparkle.style.setProperty('--final-x', finalX + 'px');
+      sparkle.style.setProperty('--final-y', finalY + 'px');
+      
+      document.body.appendChild(sparkle);
+      
+      // Remover después de la animación
+      setTimeout(() => {
+        if (sparkle.parentNode) {
+          sparkle.parentNode.removeChild(sparkle);
+        }
+      }, 1500);
+    }
+  }
+
+  // Recoger linterna
+  function pickupFlashlight() {
+    if (hasFlashlight) return;
+
+    const flashlightItem = document.getElementById('flashlightItem');
+    const pickupText = document.getElementById('pickupText');
+    const flashlight = document.getElementById('flashlight');
+    const roomBackground = document.getElementById('roomBackground');
+    const roomDarkness = document.getElementById('roomDarkness');
+    
+    if (!flashlightItem || !flashlight) return;
+
+    // Ocultar linterna del suelo
+    flashlightItem.classList.add('hidden');
+    if (pickupText) pickupText.style.opacity = '0';
+    
+    // Revelar imagen de fondo Y activar la máscara de oscuridad
+    if (roomBackground) roomBackground.classList.add('revealed');
+    if (roomDarkness) roomDarkness.classList.add('active');
+    
+    // Activar linterna del cursor con animación de encendido
+    hasFlashlight = true;
+    document.body.classList.add('has-flashlight');
+    flashlight.classList.add('active');
+    flashlight.classList.add('turning-on');
+    
+    // Inicializar posición del flashlight al cursor actual
+    flashlight.style.left = (mouseX - 250) + 'px';
+    flashlight.style.top = (mouseY - 250) + 'px';
+    
+    // Inicializar posición de la máscara
+    if (roomDarkness) {
+      const xPercent = (mouseX / window.innerWidth) * 100;
+      const yPercent = (mouseY / window.innerHeight) * 100;
+      roomDarkness.style.setProperty('--flashlight-x', xPercent + '%');
+      roomDarkness.style.setProperty('--flashlight-y', yPercent + '%');
+    }
+    
+    // Quitar clase de animación y añadir clase lit después de que termine
+    setTimeout(() => {
+      flashlight.classList.remove('turning-on');
+      flashlight.classList.add('lit');
+    }, 1200);
+
+    // Cambiar texto con efecto typewriter
+    changeInstructionText();
+  }
+
+  function changeInstructionText() {
+    const line1 = document.getElementById('line1');
+    const line2 = document.getElementById('line2');
+    const instructions = document.getElementById('instructions');
+    
+    if (!line1 || !line2 || !instructions) return;
+    
+    line1.innerHTML = '';
+    line2.innerHTML = '';
+    
+    setTimeout(() => {
+      const newText1 = "* Recogiste la linterna.";
+      const newText2 = "* Busca el interruptor para encender las luces.";
+      let index1 = 0;
+      let index2 = 0;
+      
+      const interval1 = setInterval(() => {
+        if (index1 < newText1.length) {
+          const span = document.createElement('span');
+          span.className = 'char';
+          span.textContent = newText1[index1];
+          line1.appendChild(span);
+          index1++;
+        } else {
+          clearInterval(interval1);
+          setTimeout(() => {
+            const interval2 = setInterval(() => {
+              if (index2 < newText2.length) {
+                const span = document.createElement('span');
+                span.className = 'char';
+                span.textContent = newText2[index2];
+                line2.appendChild(span);
+                index2++;
+              } else {
+                clearInterval(interval2);
+                // Hacer el texto de instrucciones más sutil después de recoger
+                setTimeout(() => {
+                  instructions.style.opacity = '0.5';
+                  instructions.style.top = '15%';
+                  instructions.style.fontSize = '1.2em';
+                }, 2000);
+              }
+            }, 50);
+          }, 500);
+        }
+      }, 50);
+    }, 300);
+  }
+
+  // Inicializar eventos
+  document.addEventListener('DOMContentLoaded', () => {
+    const flashlightItem = document.getElementById('flashlightItem');
+    const pickupText = document.getElementById('pickupText');
+    
+    if (!flashlightItem || !pickupText) return;
+
+    // Obtener delay y mostrar después del tiempo especificado
+    const delay = parseInt(flashlightItem.getAttribute('data-delay') || '0');
+    
+    if (delay > 0) {
+      // Mostrar después del delay con animación
+      setTimeout(() => {
+        console.log('🎬 Iniciando fadeIn del PickupItem');
+        
+        // Quitar clase delayed y hacer visible
+        flashlightItem.classList.remove('delayed');
+        pickupText.classList.remove('delayed');
+        
+        // Aplicar fadeIn con estilos directos para asegurar que funcione
+        flashlightItem.style.opacity = '0';
+        flashlightItem.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        flashlightItem.style.filter = 'drop-shadow(0 0 0px rgba(255, 200, 100, 0)) brightness(0.3)';
+        flashlightItem.style.transition = 'all 2s ease-in-out';
+        
+        // Forzar reflow para que los estilos se apliquen
+        flashlightItem.offsetHeight;
+        
+        // Iniciar la animación
+        setTimeout(() => {
+          flashlightItem.style.opacity = '1';
+          flashlightItem.style.transform = 'translate(-50%, -50%) scale(1)';
+          flashlightItem.style.filter = 'drop-shadow(0 0 10px rgba(255, 200, 100, 0.6)) brightness(1)';
+          
+          console.log('✨ FadeIn del PickupItem completado');
+        }, 50);
+        
+        // También aplicar fadeIn al texto
+        pickupText.classList.add('fade-in');
+        
+        // Después del fade-in inicial, añadir la animación dramática
+        setTimeout(() => {
+          // Limpiar estilos inline y usar clases
+          flashlightItem.style.opacity = '';
+          flashlightItem.style.transform = '';
+          flashlightItem.style.filter = '';
+          flashlightItem.style.transition = '';
+          
+          flashlightItem.classList.add('appearing');
+          pickupText.classList.remove('fade-in');
+          
+          // Crear efecto de partículas
+          createSparkleEffect(flashlightItem);
+          
+          // Remover clase de aparición después de la animación
+          setTimeout(() => {
+            flashlightItem.classList.remove('appearing');
+          }, 2000);
+        }, 2500); // Esperar un poco más para el fadeIn
+      }, delay);
+    } else {
+      // Si no hay delay, aplicar fade-in inmediato
+      console.log('🎬 Iniciando fadeIn inmediato del PickupItem');
+      flashlightItem.style.opacity = '0';
+      flashlightItem.style.transition = 'all 2s ease-in-out';
+      
+      setTimeout(() => {
+        flashlightItem.style.opacity = '1';
+      }, 50);
+      
+      pickupText.classList.add('fade-in');
+      setTimeout(() => {
+        flashlightItem.style.opacity = '';
+        flashlightItem.style.transition = '';
+        pickupText.classList.remove('fade-in');
+      }, 2000);
+    }
+
+    // Mostrar texto de recoger al hacer hover
+    flashlightItem.addEventListener('mouseenter', () => {
+      pickupText.style.opacity = '1';
+      pickupText.style.transform = 'translateX(-50%) translateY(-5px)';
+    });
+    
+    flashlightItem.addEventListener('mouseleave', () => {
+      pickupText.style.opacity = '0';
+      pickupText.style.transform = 'translateX(-50%) translateY(0)';
+    });
+
+    // Click en la linterna
+    flashlightItem.addEventListener('click', pickupFlashlight);
+
+    // Permitir recoger con tecla Z (estilo Undertale)
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'z' && !hasFlashlight) {
+        const itemRect = flashlightItem.getBoundingClientRect();
+        const distance = Math.sqrt(
+          Math.pow(mouseX - (itemRect.left + itemRect.width/2), 2) + 
+          Math.pow(mouseY - (itemRect.top + itemRect.height/2), 2)
+        );
+        
+        // Si está cerca de la linterna (radio de 150px)
+        if (distance < 150 && !flashlightItem.classList.contains('hidden')) {
+          pickupFlashlight();
+        }
+      }
+    });
+
+    // Rastrear posición del mouse
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+  });
+</script>
+
+<style>
+  #flashlightItem {
+    position: fixed !important;
+    top: 55% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    cursor: pointer !important;
+    z-index: 160 !important;
+    font-size: 4em !important;
+    filter: drop-shadow(0 0 10px rgba(255, 200, 100, 0.6)) !important;
+    transition: transform 0.3s ease, filter 0.3s ease !important;
+    animation: flashlightPulse 2s ease-in-out infinite !important;
+    user-select: none !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    box-shadow: none !important;
+    outline: none !important;
+    opacity: 1 !important; /* Opacidad normal por defecto */
+  }
+
+  #flashlightItem.delayed {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, -50%) scale(0.5) !important;
+  }
+
+  #flashlightItem.ready {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  #flashlightItem.fade-in {
+    animation: fadeInItem 1.5s ease-out forwards !important;
+  }
+
+  #flashlightItem.delayed-fade-in {
+    animation: delayedFadeIn 2s ease-in-out forwards !important;
+  }
+
+  #flashlightItem.appearing {
+    animation: itemAppear 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+  }
+
+  @keyframes delayedFadeIn {
+    0% {
+      opacity: 0 !important;
+      transform: translate(-50%, -50%) scale(0.8) !important;
+      filter: drop-shadow(0 0 0px rgba(255, 200, 100, 0)) brightness(0.3) !important;
+    }
+    30% {
+      opacity: 0.3 !important;
+      transform: translate(-50%, -50%) scale(0.9) !important;
+      filter: drop-shadow(0 0 8px rgba(255, 200, 100, 0.4)) brightness(0.6) !important;
+    }
+    60% {
+      opacity: 0.7 !important;
+      transform: translate(-50%, -50%) scale(1.05) !important;
+      filter: drop-shadow(0 0 15px rgba(255, 200, 100, 0.7)) brightness(1.2) !important;
+    }
+    100% {
+      opacity: 1 !important;
+      transform: translate(-50%, -50%) scale(1) !important;
+      filter: drop-shadow(0 0 10px rgba(255, 200, 100, 0.6)) brightness(1) !important;
+    }
+  }
+
+  @keyframes fadeInItem {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+      filter: drop-shadow(0 0 0px rgba(255, 200, 100, 0)) brightness(0.5);
+    }
+    30% {
+      opacity: 0.4;
+      transform: translate(-50%, -50%) scale(0.9);
+      filter: drop-shadow(0 0 8px rgba(255, 200, 100, 0.4)) brightness(0.8);
+    }
+    60% {
+      opacity: 0.7;
+      transform: translate(-50%, -50%) scale(1.05);
+      filter: drop-shadow(0 0 15px rgba(255, 200, 100, 0.7)) brightness(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      filter: drop-shadow(0 0 10px rgba(255, 200, 100, 0.6)) brightness(1);
+    }
+  }
+
+  @keyframes itemAppear {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0) rotate(-180deg);
+      filter: drop-shadow(0 0 0px rgba(255, 200, 100, 0)) brightness(0);
+    }
+    20% {
+      opacity: 0.3;
+      transform: translate(-50%, -50%) scale(0.3) rotate(-90deg);
+      filter: drop-shadow(0 0 15px rgba(255, 200, 100, 0.8)) brightness(2);
+    }
+    50% {
+      opacity: 0.8;
+      transform: translate(-50%, -50%) scale(1.3) rotate(0deg);
+      filter: drop-shadow(0 0 30px rgba(255, 200, 100, 1)) brightness(2.5);
+    }
+    70% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(0.9) rotate(10deg);
+      filter: drop-shadow(0 0 25px rgba(255, 200, 100, 0.9)) brightness(1.8);
+    }
+    85% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.1) rotate(-5deg);
+      filter: drop-shadow(0 0 20px rgba(255, 200, 100, 0.8)) brightness(1.4);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1) rotate(0deg);
+      filter: drop-shadow(0 0 10px rgba(255, 200, 100, 0.6)) brightness(1);
+    }
+  }
+
+  #flashlightItem:hover {
+    transform: translate(-50%, -50%) scale(1.15) rotate(5deg) !important;
+    filter: drop-shadow(0 0 20px rgba(255, 200, 100, 0.8)) brightness(1.2) !important;
+  }
+  
+  #flashlightItem:active {
+    transform: translate(-50%, -50%) scale(1.05) !important;
+  }
+
+  #flashlightItem.hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, -50%) scale(0) !important;
+  }
+
+  @keyframes flashlightPulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 15px rgba(255, 200, 100, 0.6)) brightness(1);
+    }
+    50% {
+      filter: drop-shadow(0 0 25px rgba(255, 200, 100, 0.9)) brightness(1.1);
+    }
+  }
+
+  #pickupText {
+    position: fixed;
+    top: 65%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.3em;
+    z-index: 250;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    font-family: 'WalterTurncoat', 'Courier New', monospace;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 200, 100, 0.5);
+    box-shadow: 0 0 20px rgba(255, 200, 100, 0.3);
+    letter-spacing: 0.5px;
+  }
+
+  #pickupText.delayed {
+    display: none !important;
+  }
+
+  #pickupText.fade-in {
+    animation: fadeInText 1.5s ease-out forwards;
+  }
+
+  @keyframes fadeInText {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  /* Efectos de partículas brillantes */
+  .sparkle {
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, #fff 0%, #ffeb3b 50%, transparent 100%);
+    border-radius: 50%;
+    animation: sparkleFloat 1.5s ease-out forwards;
+    box-shadow: 0 0 6px #ffeb3b, 0 0 12px #fff;
+  }
+
+  .sparkle::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(45deg, transparent, #fff, transparent);
+    border-radius: 50%;
+    animation: sparkleRotate 1.5s linear infinite;
+  }
+
+  @keyframes sparkleFloat {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(var(--final-x) - 50%), calc(var(--final-y) - 50%)) scale(0.3);
+    }
+  }
+
+  @keyframes sparkleRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Efecto de resplandor de fondo durante la aparición */
+  #flashlightItem.appearing::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 200, 100, 0.3) 0%, rgba(255, 200, 100, 0.1) 40%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+    animation: glowPulse 2s ease-out;
+  }
+
+  @keyframes glowPulse {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+  }
+</style>

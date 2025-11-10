@@ -1,0 +1,846 @@
+---
+// FlashlightEffect.astro - Sistema de linterna con iluminación
+---
+
+<div id="flashlight"></div>
+<div id="particlesContainer"></div>
+
+<script>
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let particles: Array<{element: HTMLElement, vx: number, vy: number, life: number, maxLife: number}> = [];
+  let animationFrame: number;
+
+  // Tipos de partículas
+  const PARTICLE_TYPES = {
+    DUST: 'dust',
+    SPARKLE: 'sparkle', 
+    SMOKE: 'smoke',
+    GLOW: 'glow',
+    EMBER: 'ember'
+  };
+
+  // Sistema mejorado de partículas con física realista
+  function createAdvancedParticles() {
+    const particlesContainer = document.getElementById('particlesContainer');
+    if (!particlesContainer) return;
+    
+    let lastTime = 0;
+    const particleSpawnRate = 200; // ms entre spawns (menos frecuente)
+    
+    function spawnParticles(currentTime: number) {
+      const hasFlashlight = document.body.classList.contains('has-flashlight');
+      const isLightOn = document.body.classList.contains('lights-on');
+      const flashlight = document.getElementById('flashlight');
+      const flashlightActive = flashlight && flashlight.classList.contains('lit');
+      
+      // Solo crear partículas si tenemos linterna, no están las luces encendidas, y la linterna está activa
+      if (hasFlashlight && !isLightOn && flashlightActive && currentTime - lastTime > particleSpawnRate) {
+        // Crear menos partículas para un efecto más sutil
+        const particleCount = Math.random() * 2 + 1; // 1-3 partículas por spawn
+        
+        for (let i = 0; i < particleCount; i++) {
+          const types = Object.values(PARTICLE_TYPES);
+          // Favorecer partículas más sutiles
+          const weightedTypes = [
+            ...Array(4).fill(PARTICLE_TYPES.DUST),
+            ...Array(2).fill(PARTICLE_TYPES.SMOKE),
+            PARTICLE_TYPES.GLOW,
+            PARTICLE_TYPES.SPARKLE
+          ];
+          const randomType = weightedTypes[Math.floor(Math.random() * weightedTypes.length)];
+          
+          if (particlesContainer) {
+            createAdvancedParticle(particlesContainer, randomType);
+          }
+        }
+        
+        // Crear partículas especiales ocasionalmente
+        if (Math.random() < 0.15 && particlesContainer) {
+          createAdvancedParticle(particlesContainer, PARTICLE_TYPES.SPARKLE);
+        }
+        
+        if (Math.random() < 0.1 && particlesContainer) {
+          createAdvancedParticle(particlesContainer, PARTICLE_TYPES.EMBER);
+        }
+        
+        lastTime = currentTime;
+      }
+      
+      // Actualizar todas las partículas existentes
+      updateParticles();
+      
+      // Sincronizar posición cada frame
+      syncFlashlightPosition();
+      
+      animationFrame = requestAnimationFrame(spawnParticles);
+    }
+    
+    spawnParticles(0);
+  }
+
+  function createAdvancedParticle(container: HTMLElement, type: string) {
+    const particle = document.createElement('div');
+    particle.className = `particle particle-${type}`;
+    
+    // Configuración específica por tipo
+    let size, initialVx, initialVy, life, color, blur;
+    
+    switch (type) {
+      case PARTICLE_TYPES.DUST:
+        size = Math.random() * 2 + 1;
+        initialVx = (Math.random() - 0.5) * 0.5;
+        initialVy = Math.random() * -0.8 - 0.2;
+        life = Math.random() * 180 + 120; // frames
+        color = `rgba(255, 245, 200, ${Math.random() * 0.4 + 0.1})`;
+        blur = 0;
+        break;
+        
+      case PARTICLE_TYPES.SPARKLE:
+        size = Math.random() * 4 + 2;
+        initialVx = (Math.random() - 0.5) * 2;
+        initialVy = Math.random() * -2 - 1;
+        life = Math.random() * 60 + 30;
+        color = `rgba(255, 255, 255, ${Math.random() * 0.8 + 0.5})`;
+        blur = 1;
+        break;
+        
+      case PARTICLE_TYPES.SMOKE:
+        size = Math.random() * 8 + 4;
+        initialVx = (Math.random() - 0.5) * 0.3;
+        initialVy = Math.random() * -0.5 - 0.1;
+        life = Math.random() * 240 + 180;
+        color = `rgba(200, 200, 200, ${Math.random() * 0.2 + 0.05})`;
+        blur = 2;
+        break;
+        
+      case PARTICLE_TYPES.GLOW:
+        size = Math.random() * 6 + 8;
+        initialVx = (Math.random() - 0.5) * 0.8;
+        initialVy = Math.random() * -1.2 - 0.5;
+        life = Math.random() * 150 + 90;
+        color = `rgba(255, 220, 150, ${Math.random() * 0.3 + 0.2})`;
+        blur = 4;
+        break;
+        
+      case PARTICLE_TYPES.EMBER:
+        size = Math.random() * 3 + 2;
+        initialVx = (Math.random() - 0.5) * 1.5;
+        initialVy = Math.random() * -3 - 1;
+        life = Math.random() * 100 + 80;
+        color = `rgba(255, ${Math.random() * 100 + 100}, 50, ${Math.random() * 0.6 + 0.4})`;
+        blur = 0.5;
+        break;
+        
+      default:
+        size = 2;
+        initialVx = 0;
+        initialVy = -1;
+        life = 120;
+        color = 'rgba(255, 255, 255, 0.3)';
+        blur = 0;
+    }
+    
+    // Estilo del elemento
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+    particle.style.background = color;
+    particle.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+    
+    // Posición inicial dentro del cono de luz (centrada en la linterna)
+    const lightRadius = Math.random() * 180 + 30; // Radio más controlado
+    const angle = Math.random() * Math.PI * 2; // Círculo completo
+    const distance = Math.random() * lightRadius; // Distribución uniforme
+    
+    const offsetX = Math.cos(angle) * distance;
+    const offsetY = Math.sin(angle) * distance;
+    
+    // Obtener posición actual del mouse de forma más directa
+    let centerX = mouseX;
+    let centerY = mouseY;
+    
+    // Si no tenemos posición del mouse, buscarla desde el elemento de la linterna
+    if (!centerX || !centerY) {
+      const flashlight = document.getElementById('flashlight');
+      if (flashlight) {
+        const rect = flashlight.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+      } else {
+        centerX = window.innerWidth / 2;
+        centerY = window.innerHeight / 2;
+      }
+    }
+    
+    const startX = centerX + offsetX;
+    const startY = centerY + offsetY;
+    
+    // Debug muy ocasional para verificar posiciones
+    if (Math.random() < 0.05) { // Solo 5% de las partículas
+      console.log(`🎯 Partícula creada en: (${startX.toFixed(0)}, ${startY.toFixed(0)}) | Mouse: (${centerX}, ${centerY})`);
+    }
+    
+    // Asegurar que las coordenadas estén dentro de los límites de la ventana
+    const clampedX = Math.max(0, Math.min(startX, window.innerWidth));
+    const clampedY = Math.max(0, Math.min(startY, window.innerHeight));
+    
+    particle.style.left = clampedX + 'px';
+    particle.style.top = clampedY + 'px';
+    particle.style.position = 'fixed'; // Asegurar posición fija
+    
+    // Crear objeto de partícula para tracking
+    const particleObj = {
+      element: particle,
+      vx: initialVx,
+      vy: initialVy,
+      life: life,
+      maxLife: life
+    };
+    
+    particles.push(particleObj);
+    container.appendChild(particle);
+  }
+
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      
+      // Actualizar posición
+      const currentX = parseFloat(p.element.style.left) || 0;
+      const currentY = parseFloat(p.element.style.top) || 0;
+      
+      p.element.style.left = (currentX + p.vx) + 'px';
+      p.element.style.top = (currentY + p.vy) + 'px';
+      
+      // Aplicar gravedad y resistencia del aire
+      p.vy += 0.02; // gravedad ligera
+      p.vx *= 0.995; // resistencia del aire
+      p.vy *= 0.998;
+      
+      // Reducir vida
+      p.life--;
+      
+      // Calcular opacidad basada en vida restante
+      const lifeRatio = p.life / p.maxLife;
+      let opacity = lifeRatio;
+      
+      // Fade in/out más suave
+      if (lifeRatio > 0.8) {
+        opacity = (1 - lifeRatio) * 5; // fade in
+      } else if (lifeRatio < 0.2) {
+        opacity = lifeRatio * 5; // fade out
+      }
+      
+      p.element.style.opacity = Math.max(0, opacity).toString();
+      
+      // Escala dinámica para algunos tipos
+      if (p.element.classList.contains('particle-smoke')) {
+        const scale = 1 + (1 - lifeRatio) * 0.5;
+        p.element.style.transform = `scale(${scale})`;
+      } else if (p.element.classList.contains('particle-sparkle')) {
+        const twinkle = Math.sin(Date.now() * 0.01 + i) * 0.3 + 0.7;
+        p.element.style.opacity = (opacity * twinkle).toString();
+      }
+      
+      // Eliminar partículas muertas
+      if (p.life <= 0 || currentY > window.innerHeight + 100) {
+        p.element.remove();
+        particles.splice(i, 1);
+      }
+    }
+  }
+  
+  function createFloatingSpecks() {
+    const particlesContainer = document.getElementById('particlesContainer');
+    if (!particlesContainer) return;
+    
+    // Crear partículas de ambiente que flotan constantemente
+    setInterval(() => {
+      const hasFlashlight = document.body.classList.contains('has-flashlight');
+      const isLightOn = document.body.classList.contains('lights-on');
+      
+      if (hasFlashlight && !isLightOn && Math.random() < 0.3) {
+        const speck = document.createElement('div');
+        speck.className = 'floating-speck';
+        
+        const size = Math.random() * 1.5 + 0.5;
+        speck.style.width = size + 'px';
+        speck.style.height = size + 'px';
+        
+        // Posición aleatoria en el área visible
+        const x = Math.random() * window.innerWidth;
+        const y = window.innerHeight + 20;
+        
+        speck.style.left = x + 'px';
+        speck.style.top = y + 'px';
+        
+        // Movimiento flotante lento
+        const duration = Math.random() * 15 + 10;
+        const drift = (Math.random() - 0.5) * 200;
+        
+        speck.style.setProperty('--drift', drift + 'px');
+        speck.style.animationDuration = duration + 's';
+        
+        particlesContainer.appendChild(speck);
+        
+        setTimeout(() => {
+          speck.remove();
+        }, duration * 1000);
+      }
+    }, 1500); // Intervalo más largo para menos partículas ambientales
+  }
+
+  // Variables para efectos aleatorios
+  let lastFlickerTime = 0;
+  let nextFlickerDelay = Math.random() * 5000 + 3000; // Entre 3-8 segundos
+
+  // Actualizar posición de la linterna y máscara
+  function updateFlashlightPosition(e: MouseEvent) {
+    const hasFlashlight = document.body.classList.contains('has-flashlight');
+    const isLightOn = document.body.classList.contains('lights-on');
+    
+    if (hasFlashlight && !isLightOn) {
+      const flashlight = document.getElementById('flashlight');
+      const roomDarkness = document.getElementById('roomDarkness');
+      const particlesContainer = document.getElementById('particlesContainer');
+      
+      if (flashlight) {
+        flashlight.style.left = (e.clientX - 300) + 'px';
+        flashlight.style.top = (e.clientY - 300) + 'px';
+        
+        // Aplicar efectos aleatorios ocasionalmente
+        const currentTime = Date.now();
+        if (currentTime - lastFlickerTime > nextFlickerDelay) {
+          applyRandomFlicker(flashlight);
+          lastFlickerTime = currentTime;
+          nextFlickerDelay = Math.random() * 8000 + 4000; // Siguiente entre 4-12 segundos
+        }
+      }
+      
+      if (roomDarkness) {
+        const xPercent = (e.clientX / window.innerWidth) * 100;
+        const yPercent = (e.clientY / window.innerHeight) * 100;
+        roomDarkness.style.setProperty('--flashlight-x', xPercent + '%');
+        roomDarkness.style.setProperty('--flashlight-y', yPercent + '%');
+      }
+      
+      // Actualizar variables CSS para efectos ambientales
+      if (particlesContainer) {
+        particlesContainer.style.setProperty('--mouse-x', e.clientX + 'px');
+        particlesContainer.style.setProperty('--mouse-y', e.clientY + 'px');
+        particlesContainer.classList.add('flashlight-active');
+      }
+    }
+  }
+
+  // Aplicar efectos aleatorios de parpadeo
+  function applyRandomFlicker(flashlight: HTMLElement) {
+    const originalAnimation = flashlight.style.animation;
+    
+    // Tipos de efectos aleatorios
+    const effects = [
+      'quickFlicker 0.3s ease-out',
+      'gentleBreathing 2s ease-in-out',
+      'microGlitch 0.15s ease-out',
+      ''  // Sin efecto adicional
+    ];
+    
+    const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+    
+    if (randomEffect) {
+      flashlight.style.animation = `${originalAnimation}, ${randomEffect}`;
+      
+      // Restaurar animación original después del efecto
+      setTimeout(() => {
+        flashlight.style.animation = originalAnimation;
+      }, 2000);
+    }
+  }
+
+  // Función para limpiar efectos cuando se apaga la linterna
+  function cleanupParticles() {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    
+    // Remover todas las partículas existentes
+    particles.forEach(p => p.element.remove());
+    particles = [];
+    
+    // Limpiar efectos del contenedor
+    const particlesContainer = document.getElementById('particlesContainer');
+    if (particlesContainer) {
+      particlesContainer.classList.remove('flashlight-active');
+    }
+  }
+
+  // Sincronizar posición del mouse con la linterna
+  function syncFlashlightPosition() {
+    const flashlight = document.getElementById('flashlight');
+    if (flashlight && flashlight.classList.contains('lit')) {
+      const rect = flashlight.getBoundingClientRect();
+      const flashlightCenterX = rect.left + rect.width / 2;
+      const flashlightCenterY = rect.top + rect.height / 2;
+      
+      // Actualizar posición global si es muy diferente
+      if (Math.abs(mouseX - flashlightCenterX) > 10 || Math.abs(mouseY - flashlightCenterY) > 10) {
+        mouseX = flashlightCenterX;
+        mouseY = flashlightCenterY;
+        console.log(`🔄 Posición sincronizada: (${mouseX.toFixed(0)}, ${mouseY.toFixed(0)})`);
+      }
+    }
+  }
+
+  // Debug: mostrar información de partículas
+  function debugParticles() {
+    console.log(`🔍 Partículas activas: ${particles.length}`);
+    console.log(`📍 Mouse: (${mouseX}, ${mouseY})`);
+    console.log(`💡 Linterna activa: ${document.body.classList.contains('has-flashlight')}`);
+    console.log(`🔆 Luces encendidas: ${document.body.classList.contains('lights-on')}`);
+    
+    const flashlight = document.getElementById('flashlight');
+    if (flashlight) {
+      console.log(`✨ Linterna lit: ${flashlight.classList.contains('lit')}`);
+      const rect = flashlight.getBoundingClientRect();
+      console.log(`🎯 Linterna posición: (${(rect.left + rect.width/2).toFixed(0)}, ${(rect.top + rect.height/2).toFixed(0)})`);
+    }
+    
+    syncFlashlightPosition();
+  }
+
+  // Inicializar sistema de linterna
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Inicializando sistema de partículas...');
+    
+    // Inicializar posición del mouse al centro de la pantalla
+    mouseX = window.innerWidth / 2;
+    mouseY = window.innerHeight / 2;
+    console.log(`📍 Posición inicial del mouse: (${mouseX}, ${mouseY})`);
+    
+    createAdvancedParticles();
+    createFloatingSpecks();
+    
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      updateFlashlightPosition(e);
+      
+      // Debug muy ocasional para verificar la posición
+      if (Math.random() < 0.001) { // 0.1% de las veces
+        console.log(`🖱️ Mouse actualizado: (${mouseX}, ${mouseY})`);
+      }
+    });
+    
+    // Debug cada 10 segundos
+    setInterval(debugParticles, 10000);
+    
+    // Observar cambios en el estado de las luces
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const isLightOn = document.body.classList.contains('lights-on');
+          if (isLightOn) {
+            console.log('💡 Luces encendidas - limpiando partículas');
+            cleanupParticles();
+          }
+        }
+      });
+    });
+    
+    observer.observe(document.body, { attributes: true });
+  });
+</script>
+
+<style>
+  #flashlight {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,220,150,0.9) 0%, rgba(255,180,80,0.6) 20%, rgba(255,150,50,0.4) 40%, rgba(255,120,30,0.2) 60%, rgba(255,100,20,0.1) 75%, transparent 90%);
+    pointer-events: none;
+    z-index: 200;
+    mask: radial-gradient(circle, white 40%, transparent 70%);
+    -webkit-mask: radial-gradient(circle, white 40%, transparent 70%);
+    filter: blur(30px);
+    opacity: 0;
+    display: none;
+    transition: opacity 0.1s ease-out;
+  }
+
+  #flashlight.active {
+    display: block;
+  }
+
+  #flashlight.turning-on {
+    animation: flashlightTurnOn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  #flashlight.lit {
+    opacity: 1 !important;
+  }
+
+  @keyframes flashlightTurnOn {
+    0% {
+      opacity: 0;
+      transform: scale(0.1);
+      filter: blur(80px) brightness(2);
+    }
+    15% {
+      opacity: 0.2;
+      filter: blur(60px) brightness(1.8);
+    }
+    35% {
+      opacity: 0.5;
+      transform: scale(0.8);
+      filter: blur(45px) brightness(1.5);
+    }
+    55% {
+      opacity: 0.85;
+      transform: scale(1.15);
+      filter: blur(35px) brightness(1.2);
+    }
+    75% {
+      opacity: 0.95;
+      transform: scale(0.95);
+      filter: blur(32px) brightness(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(30px) brightness(1);
+    }
+  }
+
+  #particlesContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 199;
+    overflow: hidden;
+  }
+
+  /* Estilos base para partículas */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Partículas de polvo - más visibles */
+  .particle-dust {
+    background: radial-gradient(circle, rgba(255, 245, 200, 0.8) 0%, rgba(255, 230, 180, 0.5) 40%, rgba(255, 200, 150, 0.2) 70%, transparent 90%);
+    box-shadow: 
+      0 0 2px rgba(255, 245, 200, 0.6),
+      0 0 4px rgba(255, 230, 180, 0.3);
+  }
+
+  /* Partículas brillantes */
+  .particle-sparkle {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 30%, rgba(255, 220, 150, 0.3) 60%, transparent 90%);
+    box-shadow: 
+      0 0 4px rgba(255, 255, 255, 0.8),
+      0 0 8px rgba(255, 255, 255, 0.4),
+      0 0 12px rgba(255, 255, 255, 0.2);
+    animation: sparkleGlow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes sparkleGlow {
+    0% {
+      box-shadow: 
+        0 0 4px rgba(255, 255, 255, 0.8),
+        0 0 8px rgba(255, 255, 255, 0.4),
+        0 0 12px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+      box-shadow: 
+        0 0 6px rgba(255, 255, 255, 1),
+        0 0 12px rgba(255, 255, 255, 0.6),
+        0 0 18px rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  /* Partículas de humo */
+  .particle-smoke {
+    background: radial-gradient(circle, rgba(200, 200, 200, 0.3) 0%, rgba(180, 180, 180, 0.15) 50%, transparent 80%);
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  /* Partículas de resplandor - más brillantes */
+  .particle-glow {
+    background: radial-gradient(circle, rgba(255, 220, 150, 0.7) 0%, rgba(255, 200, 100, 0.5) 30%, rgba(255, 180, 80, 0.3) 60%, transparent 90%);
+    box-shadow: 
+      0 0 6px rgba(255, 220, 150, 0.6),
+      0 0 12px rgba(255, 220, 150, 0.3);
+    filter: blur(0.5px);
+  }
+
+  /* Partículas de brasa */
+  .particle-ember {
+    background: radial-gradient(circle, rgba(255, 150, 50, 0.8) 0%, rgba(255, 100, 30, 0.6) 40%, rgba(200, 50, 20, 0.3) 70%, transparent 90%);
+    box-shadow: 
+      0 0 3px rgba(255, 150, 50, 0.6),
+      0 0 6px rgba(255, 100, 30, 0.3);
+    animation: emberFlicker 1.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes emberFlicker {
+    0% {
+      filter: brightness(0.8);
+      box-shadow: 
+        0 0 3px rgba(255, 150, 50, 0.6),
+        0 0 6px rgba(255, 100, 30, 0.3);
+    }
+    100% {
+      filter: brightness(1.2);
+      box-shadow: 
+        0 0 5px rgba(255, 150, 50, 0.8),
+        0 0 10px rgba(255, 100, 30, 0.5);
+    }
+  }
+
+  /* Partículas flotantes de ambiente */
+  .floating-speck {
+    position: absolute;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 240, 200, 0.05) 50%, transparent 80%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: gentleFloat linear infinite;
+  }
+
+  @keyframes gentleFloat {
+    0% {
+      transform: translateX(0) translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.15;
+    }
+    90% {
+      opacity: 0.05;
+    }
+    100% {
+      transform: translateX(var(--drift)) translateY(-100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  /* Efectos adicionales para el contenedor de partículas */
+  #particlesContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+        rgba(255, 220, 150, 0.02) 0%, 
+        rgba(255, 200, 100, 0.01) 30%, 
+        transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Mejoras para el efecto de linterna con interferencia */
+  #flashlight {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: 
+      radial-gradient(circle, 
+        rgba(255, 240, 180, 0.95) 0%, 
+        rgba(255, 220, 150, 0.8) 15%, 
+        rgba(255, 200, 120, 0.6) 30%, 
+        rgba(255, 180, 100, 0.4) 45%, 
+        rgba(255, 160, 80, 0.25) 60%, 
+        rgba(255, 140, 60, 0.15) 75%, 
+        rgba(255, 120, 40, 0.08) 85%, 
+        transparent 95%);
+    pointer-events: none;
+    z-index: 200;
+    filter: blur(25px);
+    opacity: 0;
+    display: none;
+    transition: opacity 0.15s ease-out;
+    mix-blend-mode: screen;
+  }
+
+  #flashlight.active {
+    display: block;
+  }
+
+  #flashlight.turning-on {
+    animation: enhancedFlashlightTurnOn 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  #flashlight.lit {
+    opacity: 1 !important;
+    animation: subtleInterference 12s ease-in-out infinite;
+  }
+
+  @keyframes enhancedFlashlightTurnOn {
+    0% {
+      opacity: 0;
+      transform: scale(0.1);
+      filter: blur(80px) brightness(3);
+    }
+    20% {
+      opacity: 0.3;
+      filter: blur(60px) brightness(2.5);
+    }
+    40% {
+      opacity: 0.6;
+      transform: scale(0.8);
+      filter: blur(45px) brightness(2);
+    }
+    60% {
+      opacity: 0.85;
+      transform: scale(1.2);
+      filter: blur(35px) brightness(1.5);
+    }
+    80% {
+      opacity: 0.95;
+      transform: scale(0.95);
+      filter: blur(30px) brightness(1.2);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(25px) brightness(1);
+    }
+  }
+
+  /* Animación de interferencia muy sutil */
+  @keyframes subtleInterference {
+    0% {
+      filter: blur(25px) brightness(1) contrast(1);
+      opacity: 1;
+      transform: scale(1);
+    }
+    15% {
+      filter: blur(24px) brightness(1.02) contrast(1.005);
+      opacity: 0.99;
+      transform: scale(1.001);
+    }
+    30% {
+      filter: blur(26px) brightness(0.98) contrast(0.995);
+      opacity: 0.97;
+      transform: scale(0.998);
+    }
+    45% {
+      filter: blur(25px) brightness(1.01) contrast(1.002);
+      opacity: 0.98;
+      transform: scale(1.0005);
+    }
+    60% {
+      filter: blur(27px) brightness(0.96) contrast(0.997);
+      opacity: 0.96;
+      transform: scale(0.997);
+    }
+    75% {
+      filter: blur(24px) brightness(1.015) contrast(1.003);
+      opacity: 0.99;
+      transform: scale(1.002);
+    }
+    90% {
+      filter: blur(26px) brightness(0.99) contrast(0.998);
+      opacity: 0.98;
+      transform: scale(0.999);
+    }
+    100% {
+      filter: blur(25px) brightness(1) contrast(1);
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Efectos aleatorios sutiles */
+  @keyframes gentleBreathing {
+    0%, 70% {
+      filter: blur(25px) brightness(1);
+      transform: scale(1);
+    }
+    85% {
+      filter: blur(24px) brightness(1.04);
+      transform: scale(1.01);
+    }
+    100% {
+      filter: blur(25px) brightness(1);
+      transform: scale(1);
+    }
+  }
+
+  @keyframes quickFlicker {
+    0% {
+      filter: blur(25px) brightness(1);
+    }
+    20% {
+      filter: blur(22px) brightness(1.15);
+    }
+    40% {
+      filter: blur(28px) brightness(0.85);
+    }
+    60% {
+      filter: blur(24px) brightness(1.08);
+    }
+    100% {
+      filter: blur(25px) brightness(1);
+    }
+  }
+
+  @keyframes microGlitch {
+    0%, 60% {
+      filter: blur(25px) brightness(1);
+      transform: translateX(0);
+    }
+    70% {
+      filter: blur(23px) brightness(1.1);
+      transform: translateX(1px);
+    }
+    80% {
+      filter: blur(27px) brightness(0.9);
+      transform: translateX(-1px);
+    }
+    90% {
+      filter: blur(24px) brightness(1.05);
+      transform: translateX(0.5px);
+    }
+    100% {
+      filter: blur(25px) brightness(1);
+      transform: translateX(0);
+    }
+  }
+
+  /* Efectos de iluminación ambiental */
+  #particlesContainer.flashlight-active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle 300px at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+        rgba(255, 220, 150, 0.03) 0%, 
+        transparent 60%);
+    pointer-events: none;
+    animation: ambientGlow 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes ambientGlow {
+    0% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0.8;
+    }
+  }
+</style>
