@@ -2,22 +2,22 @@
 
 Una demostración interactiva de habitación oscura que muestra las capacidades de Astro junto con técnicas avanzadas de CSS y JavaScript para crear experiencias web inmersivas.
 
-> 🤖 **Desarrollado completamente con Claude Sonnet 4** - Esta aplicación fue creada íntegramente mediante conversación con IA, demostrando las capacidades de desarrollo colaborativo entre humanos e inteligencia artificial.
+>  **Desarrollado completamente con Claude Sonnet 4** - Esta aplicación fue creada íntegramente mediante conversación con IA, demostrando las capacidades de desarrollo colaborativo entre humanos e inteligencia artificial.
 
-## ✨ Características
+##  Características
 
-- 🌙 **Experiencia de habitación oscura** con efectos de linterna
-- ⌨️ **Animaciones de texto typewriter** estilo Undertale
-- 🔦 **Sistema de pickup interactivo** con animaciones y efectos de partículas
-- 💡 **Interruptor de luz dinámico** con posicionamiento aleatorio
-- 🎨 **Efectos CSS avanzados** (masks, gradients, animations)
-- 🔊 **Sistema de audio procedural** para efectos de sonido
-- 📱 **Diseño completamente responsivo**
-- 🎮 **Interacciones tipo videojuego** (mouse + teclado)
-- 🌈 **Múltiples estilos de animación** (undertale, retro, glitch, elegant)
-- 🖼️ **Integración perfecta de assets** (fuentes, imágenes, sonidos)
+-  **Experiencia de habitación oscura** con efectos de linterna
+-  **Animaciones de texto typewriter** estilo Undertale
+-  **Sistema de pickup interactivo** con animaciones y efectos de partículas
+-  **Interruptor de luz dinámico** con posicionamiento aleatorio
+-  **Efectos CSS avanzados** (masks, gradients, animations)
+-  **Sistema de audio procedural** para efectos de sonido
+-  **Diseño completamente responsivo**
+-  **Interacciones tipo videojuego** (mouse + teclado)
+-  **Múltiples estilos de animación** (undertale, retro, glitch, elegant)
+-  **Integración perfecta de assets** (fuentes, imágenes, sonidos)
 
-## 🚀 Estructura del Proyecto
+##  Estructura del Proyecto
 
 ```text
 interactive-light-demo/
@@ -49,7 +49,7 @@ interactive-light-demo/
 
 El proyecto utiliza una estructura minimalista y limpia, enfocada exclusivamente en la demostración interactiva. Todos los assets estáticos como imágenes y fuentes se encuentran en el directorio `public/`.
 
-## 🧞 Commands
+##  Commands
 
 All commands are run from the root of the project, from a terminal:
 
@@ -62,18 +62,18 @@ All commands are run from the root of the project, from a terminal:
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## 🎮 Cómo usar la demo
+##  Cómo usar la demo
 
 1. Inicia el servidor de desarrollo: `npm run dev`
 2. Abre `http://localhost:4321` en tu navegador
 3. Sigue la secuencia interactiva:
    - Lee los textos que aparecen automáticamente
-   - Espera a que aparezca la linterna brillando (�)
+   - Espera a que aparezca la linterna brillando
    - Recoge la linterna haciendo click o presionando 'Z'
    - Busca el interruptor de luz (posición aleatoria)
    - Activa el interruptor para completar la demo
 
-## 🤖 Desarrollado con Claude Sonnet 4
+##  Desarrollado con Claude Sonnet 4
 
 Esta aplicación es un ejemplo destacado de **desarrollo colaborativo con IA**:
 
@@ -101,7 +101,7 @@ Esta aplicación es un ejemplo destacado de **desarrollo colaborativo con IA**:
 - **Lenguajes**: TypeScript, CSS3, HTML5
 - **Dependencias**: Mínimas (solo Astro core)
 
-## 🙏 Créditos
+##  Créditos
 
 - **Claude Sonnet 4** - Desarrollo completo de la aplicación
 - **Astro Team** - Framework excepcional para desarrollo web moderno
